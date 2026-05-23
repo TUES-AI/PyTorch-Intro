@@ -14,3 +14,6 @@ venv/
 *.pt
 *.pth
 *.ckpt
+
+# Notebook export artifacts
+**/exports/
