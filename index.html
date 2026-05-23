@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PyTorch Intro Leaderboard</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 60px; }
+    .hero {
+      border: 1px solid rgba(148, 163, 184, .25);
+      border-radius: 24px;
+      padding: 28px;
+      background: radial-gradient(circle at top left, rgba(59,130,246,.28), transparent 32rem), #111827;
+      box-shadow: 0 24px 80px rgba(0,0,0,.28);
+    }
+    h1 { margin: 0 0 10px; font-size: clamp(2rem, 5vw, 4rem); line-height: 1; letter-spacing: -.05em; }
+    p { color: #cbd5e1; }
+    a { color: #93c5fd; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, .72);
+      border: 1px solid rgba(148, 163, 184, .25);
+      font-weight: 700;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 999px; background: #f59e0b; box-shadow: 0 0 22px currentColor; }
+    .online .dot { background: #22c55e; }
+    .offline .dot { background: #f97316; }
+    .error .dot { background: #ef4444; }
+    .board { margin-top: 28px; display: grid; gap: 14px; }
+    .row {
+      display: grid;
+      grid-template-columns: 48px minmax(130px, 1fr) minmax(180px, 2fr) 92px;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, .18);
+      background: rgba(15, 23, 42, .74);
+    }
+    .rank { font-weight: 900; font-size: 1.2rem; color: #94a3b8; }
+    .name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-wrap { height: 18px; border-radius: 999px; overflow: hidden; background: rgba(148, 163, 184, .18); }
+    .bar { height: 100%; border-radius: inherit; width: 0; min-width: 3px; transition: width .7s ease; }
+    .score { text-align: right; font-variant-numeric: tabular-nums; font-weight: 900; }
+    .muted { color: #94a3b8; }
+    pre {
+      overflow: auto;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, .9);
+      border: 1px solid rgba(148, 163, 184, .18);
+      color: #dbeafe;
+    }
+    .panel {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, .58);
+      border: 1px solid rgba(148, 163, 184, .18);
+    }
+    @media (max-width: 720px) {
+      .row { grid-template-columns: 38px 1fr 76px; }
+      .bar-wrap { grid-column: 2 / 4; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <h1>PyTorch Intro Leaderboard</h1>
+      <p>FashionMNIST robustness challenge: the backend scores submitted <code>.pt</code> models on deterministic augmented train+test data.</p>
+      <div id="status" class="status"><span class="dot"></span><span>Checking backend tunnel...</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>Leaderboard</h2>
+      <div id="board" class="board"><p class="muted">Loading...</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>Submission endpoint</h2>
+      <p>When the tunnel is online, notebooks can read <code>/server-url/current.txt</code> and post to <code>/api/submit</code>.</p>
+      <pre>POST {server_url}/api/submit
+form-data:
+  name: your leaderboard name
+  model_file: submission.pt</pre>
+      <p><a href="server-url/">Open current backend tunnel</a></p>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const boardEl = document.getElementById("board");
+
+    function setStatus(kind, text) {
+      statusEl.className = "status " + kind;
+      statusEl.querySelector("span:last-child").textContent = text;
+    }
+
+    function fallbackGradient(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+      const hue = Math.abs(hash) % 360;
+      return `linear-gradient(90deg, hsl(${hue}, 78%, 54%), hsl(${(hue + 42) % 360}, 78%, 64%))`;
+    }
+
+    function renderLeaderboard(rows) {
+      if (!rows.length) {
+        boardEl.innerHTML = `<p class="muted">No submissions yet.</p>`;
+        return;
+      }
+      boardEl.innerHTML = rows.map((row, index) => {
+        const rank = row.rank || index + 1;
+        const percent = Math.max(0, Math.min(100, row.accuracy * 100));
+        const gradient = row.gradient || fallbackGradient(row.name);
+        return `
+          <div class="row">
+            <div class="rank">#${rank}</div>
+            <div class="name" title="${row.name}">${row.name}</div>
+            <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
+            <div class="score">${percent.toFixed(2)}%</div>
+          </div>`;
+      }).join("");
+    }
+
+    async function main() {
+      const current = await fetch("server-url/current.txt?ts=" + Date.now(), {cache: "no-store"}).then(r => r.text());
+      const serverUrl = current.trim();
+      if (!serverUrl) {
+        setStatus("offline", "Backend is sleeping");
+        boardEl.innerHTML = `<p class="muted">Run the backend tunnel to show live results here.</p>`;
+        return;
+      }
+      setStatus("online", "Backend online");
+      const data = await fetch(serverUrl + "/api/leaderboard?ts=" + Date.now(), {cache: "no-store"}).then(r => r.json());
+      renderLeaderboard(data.leaderboard || []);
+    }
+
+    main().catch(error => {
+      setStatus("error", "Could not load leaderboard");
+      boardEl.innerHTML = `<p class="muted">${error.message}</p>`;
+    });
+  </script>
+</body>
+</html>
