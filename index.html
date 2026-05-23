@@ -5,71 +5,99 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PyTorch Intro Leaderboard</title>
   <style>
-    :root { color-scheme: light dark; }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #ffffff;
+      color: #111827;
     }
-    main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 60px; }
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
     .hero {
-      border: 1px solid rgba(148, 163, 184, .25);
-      border-radius: 24px;
-      padding: 28px;
-      background: radial-gradient(circle at top left, rgba(59,130,246,.28), transparent 32rem), #111827;
-      box-shadow: 0 24px 80px rgba(0,0,0,.28);
+      padding: 24px 0 18px;
+      border-bottom: 1px solid #e5e7eb;
     }
-    h1 { margin: 0 0 10px; font-size: clamp(2rem, 5vw, 4rem); line-height: 1; letter-spacing: -.05em; }
-    p { color: #cbd5e1; }
-    a { color: #93c5fd; }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    h1 a:hover { text-decoration: underline; }
+    p { color: #4b5563; }
+    code {
+      background: #f3f4f6;
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.35rem;
+    }
     .status {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 12px;
-      padding: 8px 12px;
+      margin-top: 8px;
+      padding: 7px 11px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, .72);
-      border: 1px solid rgba(148, 163, 184, .25);
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
       font-weight: 700;
+      color: #374151;
     }
-    .dot { width: 10px; height: 10px; border-radius: 999px; background: #f59e0b; box-shadow: 0 0 22px currentColor; }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #f59e0b;
+    }
     .online .dot { background: #22c55e; }
     .offline .dot { background: #f97316; }
     .error .dot { background: #ef4444; }
-    .board { margin-top: 28px; display: grid; gap: 14px; }
+    .panel { margin-top: 26px; }
+    .board { display: grid; gap: 10px; }
     .row {
       display: grid;
       grid-template-columns: 48px minmax(130px, 1fr) minmax(180px, 2fr) 92px;
       gap: 14px;
       align-items: center;
-      padding: 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, .18);
-      background: rgba(15, 23, 42, .74);
+      padding: 13px 0;
+      border-bottom: 1px solid #f1f5f9;
     }
-    .rank { font-weight: 900; font-size: 1.2rem; color: #94a3b8; }
-    .name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bar-wrap { height: 18px; border-radius: 999px; overflow: hidden; background: rgba(148, 163, 184, .18); }
-    .bar { height: 100%; border-radius: inherit; width: 0; min-width: 3px; transition: width .7s ease; }
-    .score { text-align: right; font-variant-numeric: tabular-nums; font-weight: 900; }
-    .muted { color: #94a3b8; }
-    pre {
-      overflow: auto;
-      padding: 14px;
-      border-radius: 14px;
-      background: rgba(15, 23, 42, .9);
-      border: 1px solid rgba(148, 163, 184, .18);
-      color: #dbeafe;
+    .rank {
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: #6b7280;
     }
-    .panel {
-      margin-top: 22px;
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, .58);
-      border: 1px solid rgba(148, 163, 184, .18);
+    .name {
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+    .bar-wrap {
+      height: 16px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #eef2f7;
+    }
+    .bar {
+      height: 100%;
+      border-radius: inherit;
+      width: 0;
+      min-width: 3px;
+      transition: width 0.7s ease;
+    }
+    .score {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 900;
+    }
+    .muted { color: #6b7280; }
     @media (max-width: 720px) {
       .row { grid-template-columns: 38px 1fr 76px; }
       .bar-wrap { grid-column: 2 / 4; }
@@ -79,24 +107,14 @@
 <body>
   <main>
     <section class="hero">
-      <h1>PyTorch Intro Leaderboard</h1>
-      <p>FashionMNIST robustness challenge: the backend scores submitted <code>.pt</code> models on deterministic augmented train+test data.</p>
+      <h1><a href="https://github.com/TUES-AI/PyTorch-Intro">PyTorch Intro Leaderboard</a></h1>
+      <p>FashionMNIST robustness challenge. Submit a saved <code>.pt</code> model and compare accuracy on augmented validation data.</p>
       <div id="status" class="status"><span class="dot"></span><span>Checking backend tunnel...</span></div>
     </section>
 
     <section class="panel">
       <h2>Leaderboard</h2>
       <div id="board" class="board"><p class="muted">Loading...</p></div>
-    </section>
-
-    <section class="panel">
-      <h2>Submission endpoint</h2>
-      <p>When the tunnel is online, notebooks can read <code>/server-url/current.txt</code> and post to <code>/api/submit</code>.</p>
-      <pre>POST {server_url}/api/submit
-form-data:
-  name: your leaderboard name
-  model_file: submission.pt</pre>
-      <p><a href="server-url/">Open current backend tunnel</a></p>
     </section>
   </main>
 
@@ -113,7 +131,11 @@ form-data:
       let hash = 0;
       for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
       const hue = Math.abs(hash) % 360;
-      return `linear-gradient(90deg, hsl(${hue}, 78%, 54%), hsl(${(hue + 42) % 360}, 78%, 64%))`;
+      return `linear-gradient(90deg, hsl(${hue}, 75%, 52%), hsl(${(hue + 42) % 360}, 75%, 62%))`;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
     }
 
     function renderLeaderboard(rows) {
@@ -125,10 +147,11 @@ form-data:
         const rank = row.rank || index + 1;
         const percent = Math.max(0, Math.min(100, row.accuracy * 100));
         const gradient = row.gradient || fallbackGradient(row.name);
+        const safeName = escapeHtml(row.name);
         return `
           <div class="row">
             <div class="rank">#${rank}</div>
-            <div class="name" title="${row.name}">${row.name}</div>
+            <div class="name" title="${safeName}">${safeName}</div>
             <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
             <div class="score">${percent.toFixed(2)}%</div>
           </div>`;
@@ -150,7 +173,7 @@ form-data:
 
     main().catch(error => {
       setStatus("error", "Could not load leaderboard");
-      boardEl.innerHTML = `<p class="muted">${error.message}</p>`;
+      boardEl.innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
     });
   </script>
 </body>

@@ -1,4 +1,4 @@
-# Intro to PyTorch
+# [Intro to PyTorch](https://tues-ai.github.io/PyTorch-Intro/)
 
 ## [Lecture 1 notebook](https://colab.research.google.com/drive/1y-iC5OzQZPFNMOUdW9k78gRMsbecG-F5?usp=sharing)
 (local file at [Lecture-1/](Lecture-1/))
