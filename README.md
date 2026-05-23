@@ -12,3 +12,5 @@ Homework: Improve the base model
 
 ## [Lecture 2 notebook](https://colab.research.google.com/drive/1nzJjbfXZl3KioOSf1oVcwzX2anSA0fdv?usp=sharing)
 (local file at [Lecture-2/](Lecture-2/))
+
+![gasti](image_gasti.png)
