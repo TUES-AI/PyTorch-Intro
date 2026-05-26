@@ -26,10 +26,7 @@
       line-height: 1;
       letter-spacing: -0.05em;
     }
-    h1 a {
-      color: inherit;
-      text-decoration: none;
-    }
+    h1 a { color: inherit; text-decoration: none; }
     h1 a:hover { text-decoration: underline; }
     p { color: #4b5563; }
     code {
@@ -49,58 +46,64 @@
       font-weight: 700;
       color: #374151;
     }
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: #f59e0b;
-    }
+    .dot { width: 9px; height: 9px; border-radius: 999px; background: #f59e0b; }
     .online .dot { background: #22c55e; }
     .offline .dot { background: #f97316; }
     .error .dot { background: #ef4444; }
     .panel { margin-top: 26px; }
-    .board { display: grid; gap: 10px; }
+    .board { display: grid; gap: 8px; }
+    .entry { border-bottom: 1px solid #f1f5f9; }
     .row {
       display: grid;
       grid-template-columns: 48px minmax(130px, 1fr) minmax(180px, 2fr) 92px;
       gap: 14px;
       align-items: center;
       padding: 13px 0;
-      border-bottom: 1px solid #f1f5f9;
     }
-    .rank {
-      font-weight: 900;
-      font-size: 1.1rem;
-      color: #6b7280;
+    .run-list {
+      display: none;
+      margin: 0 0 8px 48px;
+      padding-left: 14px;
+      border-left: 2px solid #e5e7eb;
     }
+    .entry.open .run-list { display: block; }
+    .run-row {
+      padding: 8px 0;
+      color: #4b5563;
+      font-size: 0.94rem;
+    }
+    .rank { font-weight: 900; font-size: 1.1rem; color: #6b7280; }
     .name {
       font-weight: 800;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .bar-wrap {
-      height: 16px;
+    .name-line { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+    .name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .run-count { color: #6b7280; font-weight: 600; }
+    .toggle {
+      width: 22px;
+      height: 22px;
+      border: 1px solid #d1d5db;
       border-radius: 999px;
-      overflow: hidden;
-      background: #eef2f7;
-    }
-    .bar {
-      height: 100%;
-      border-radius: inherit;
-      width: 0;
-      min-width: 3px;
-      transition: width 0.7s ease;
-    }
-    .score {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
+      background: #ffffff;
+      color: #374151;
+      cursor: pointer;
+      line-height: 18px;
+      padding: 0;
       font-weight: 900;
     }
+    .toggle:hover { background: #f9fafb; }
+    .toggle-spacer { display: inline-block; width: 22px; }
+    .bar-wrap { height: 16px; border-radius: 999px; overflow: hidden; background: #eef2f7; }
+    .bar { height: 100%; border-radius: inherit; width: 0; min-width: 3px; transition: width 0.7s ease; }
+    .score { text-align: right; font-variant-numeric: tabular-nums; font-weight: 900; }
     .muted { color: #6b7280; }
     @media (max-width: 720px) {
       .row { grid-template-columns: 38px 1fr 76px; }
       .bar-wrap { grid-column: 2 / 4; }
+      .run-list { margin-left: 38px; }
     }
   </style>
 </head>
@@ -138,24 +141,46 @@
       return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
     }
 
+    function rowHtml(row, index, isRun=false) {
+      const rank = isRun ? (row.run_rank || index + 1) : (row.rank || index + 1);
+      const rankText = isRun ? `${rank}.` : `#${rank}`;
+      const percent = Math.max(0, Math.min(100, row.accuracy * 100));
+      const gradient = row.gradient || fallbackGradient(row.name);
+      const safeName = escapeHtml(row.name);
+      const hasRuns = !isRun && row.runs && row.runs.length;
+      const toggle = hasRuns ? `<button class="toggle" type="button" aria-label="show runs">▸</button>` : `<span class="toggle-spacer"></span>`;
+      const runCount = hasRuns ? `<span class="run-count">(${row.runs.length} runs)</span>` : "";
+      return `
+        <div class="row ${isRun ? "run-row" : ""}">
+          <div class="rank">${rankText}</div>
+          <div class="name" title="${safeName}">
+            <span class="name-line">${toggle}<span class="name-text">${safeName}</span>${runCount}</span>
+          </div>
+          <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
+          <div class="score">${percent.toFixed(2)}%</div>
+        </div>`;
+    }
+
     function renderLeaderboard(rows) {
       if (!rows.length) {
         boardEl.innerHTML = `<p class="muted">No submissions yet.</p>`;
         return;
       }
       boardEl.innerHTML = rows.map((row, index) => {
-        const rank = row.rank || index + 1;
-        const percent = Math.max(0, Math.min(100, row.accuracy * 100));
-        const gradient = row.gradient || fallbackGradient(row.name);
-        const safeName = escapeHtml(row.name);
-        return `
-          <div class="row">
-            <div class="rank">#${rank}</div>
-            <div class="name" title="${safeName}">${safeName}</div>
-            <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
-            <div class="score">${percent.toFixed(2)}%</div>
-          </div>`;
+        const runList = row.runs && row.runs.length
+          ? `<div class="run-list">${row.runs.map((run, runIndex) => rowHtml(run, runIndex, true)).join("")}</div>`
+          : "";
+        return `<div class="entry">${rowHtml(row, index)}${runList}</div>`;
       }).join("");
+
+      boardEl.querySelectorAll(".toggle").forEach(button => {
+        button.addEventListener("click", () => {
+          const entry = button.closest(".entry");
+          const opened = entry.classList.toggle("open");
+          button.textContent = opened ? "▾" : "▸";
+          button.setAttribute("aria-label", opened ? "hide runs" : "show runs");
+        });
+      });
     }
 
     async function main() {
