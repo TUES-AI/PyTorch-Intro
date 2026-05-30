@@ -304,9 +304,6 @@
       "device": "cpu",
       "auto_named": false,
       "submitted_at": 1779816492,
-      "color": "#f59e0b",
-      "color2": "#fbbf24",
-      "gradient": "linear-gradient(90deg, #f59e0b, #fbbf24)",
       "run_rank": 1,
       "grouped": true,
       "run_count": 2,
@@ -321,9 +318,6 @@
           "device": "cpu",
           "auto_named": false,
           "submitted_at": 1779816492,
-          "color": "hsl(145, 78%, 54%)",
-          "color2": "hsl(187, 78%, 64%)",
-          "gradient": "linear-gradient(90deg, hsl(145, 78%, 54%), hsl(187, 78%, 64%))",
           "run_rank": 1
         },
         {
@@ -336,13 +330,9 @@
           "device": "cpu",
           "auto_named": false,
           "submitted_at": 1779810793,
-          "color": "hsl(145, 78%, 54%)",
-          "color2": "hsl(187, 78%, 64%)",
-          "gradient": "linear-gradient(90deg, hsl(145, 78%, 54%), hsl(187, 78%, 64%))",
           "run_rank": 2
         }
       ],
-      "name_color": "#b45309",
       "rank": 2
     },
     {
