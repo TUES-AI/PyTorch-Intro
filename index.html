@@ -82,7 +82,6 @@
     .name-line { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
     .name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .run-count { color: #6b7280; font-weight: 600; }
-    .winner-badge { color: #b45309; font-weight: 900; }
     .toggle {
       width: 22px;
       height: 22px;
@@ -149,7 +148,6 @@
       const gradient = row.gradient || fallbackGradient(row.name);
       const safeName = escapeHtml(row.name);
       const nameStyle = row.name_color ? ` style="color:${escapeHtml(row.name_color)}"` : "";
-      const winnerBadge = row.winner ? `<span class="winner-badge">🏆 winner</span>` : "";
       const hasRuns = !isRun && row.runs && row.runs.length;
       const toggle = hasRuns ? `<button class="toggle" type="button" aria-label="show runs">▸</button>` : `<span class="toggle-spacer"></span>`;
       const runCount = hasRuns ? `<span class="run-count">(${row.runs.length} runs)</span>` : "";
@@ -157,7 +155,7 @@
         <div class="row ${isRun ? "run-row" : ""}">
           <div class="rank">${rankText}</div>
           <div class="name" title="${safeName}">
-            <span class="name-line">${toggle}<span class="name-text"${nameStyle}>${safeName}</span>${winnerBadge}${runCount}</span>
+            <span class="name-line">${toggle}<span class="name-text"${nameStyle}>${safeName}</span>${runCount}</span>
           </div>
           <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
           <div class="score">${percent.toFixed(2)}%</div>
