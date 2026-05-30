@@ -82,6 +82,7 @@
     .name-line { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
     .name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .run-count { color: #6b7280; font-weight: 600; }
+    .winner-badge { color: #b45309; font-weight: 900; }
     .toggle {
       width: 22px;
       height: 22px;
@@ -111,8 +112,8 @@
   <main>
     <section class="hero">
       <h1><a href="https://github.com/TUES-AI/PyTorch-Intro">PyTorch Intro Leaderboard</a></h1>
-      <p>FashionMNIST robustness challenge. Submit a saved <code>.pt</code> model and compare accuracy on augmented validation data.</p>
-      <div id="status" class="status"><span class="dot"></span><span>Checking backend tunnel...</span></div>
+      <p>FashionMNIST robustness challenge final results. The live scoring server is offline; this page keeps the archived leaderboard.</p>
+      <div id="status" class="status"><span class="dot"></span><span>Loading archived leaderboard...</span></div>
     </section>
 
     <section class="panel">
@@ -147,6 +148,8 @@
       const percent = Math.max(0, Math.min(100, row.accuracy * 100));
       const gradient = row.gradient || fallbackGradient(row.name);
       const safeName = escapeHtml(row.name);
+      const nameStyle = row.name_color ? ` style="color:${escapeHtml(row.name_color)}"` : "";
+      const winnerBadge = row.winner ? `<span class="winner-badge">🏆 winner</span>` : "";
       const hasRuns = !isRun && row.runs && row.runs.length;
       const toggle = hasRuns ? `<button class="toggle" type="button" aria-label="show runs">▸</button>` : `<span class="toggle-spacer"></span>`;
       const runCount = hasRuns ? `<span class="run-count">(${row.runs.length} runs)</span>` : "";
@@ -154,7 +157,7 @@
         <div class="row ${isRun ? "run-row" : ""}">
           <div class="rank">${rankText}</div>
           <div class="name" title="${safeName}">
-            <span class="name-line">${toggle}<span class="name-text">${safeName}</span>${runCount}</span>
+            <span class="name-line">${toggle}<span class="name-text"${nameStyle}>${safeName}</span>${winnerBadge}${runCount}</span>
           </div>
           <div class="bar-wrap"><div class="bar" style="width:${percent.toFixed(2)}%; background:${gradient}"></div></div>
           <div class="score">${percent.toFixed(2)}%</div>
@@ -183,21 +186,30 @@
       });
     }
 
-    async function main() {
-      const current = await fetch("server-url/current.txt?ts=" + Date.now(), {cache: "no-store"}).then(r => r.text());
-      const serverUrl = current.trim();
-      if (!serverUrl) {
-        setStatus("offline", "Backend is sleeping");
-        boardEl.innerHTML = `<p class="muted">Run the backend tunnel to show live results here.</p>`;
-        return;
-      }
-      setStatus("online", "Backend online");
-      const data = await fetch(serverUrl + "/api/leaderboard?ts=" + Date.now(), {cache: "no-store"}).then(r => r.json());
+    async function loadArchive(text="Archived final leaderboard") {
+      const data = await fetch("leaderboard-archive.json?ts=" + Date.now(), {cache: "no-store"}).then(r => r.json());
+      setStatus("offline", text);
       renderLeaderboard(data.leaderboard || []);
     }
 
+    async function main() {
+      const current = await fetch("server-url/current.txt?ts=" + Date.now(), {cache: "no-store"}).then(r => r.text()).catch(() => "");
+      const serverUrl = current.trim();
+      if (!serverUrl) {
+        await loadArchive();
+        return;
+      }
+      setStatus("online", "Backend online");
+      try {
+        const data = await fetch(serverUrl + "/api/leaderboard?ts=" + Date.now(), {cache: "no-store"}).then(r => r.json());
+        renderLeaderboard(data.leaderboard || []);
+      } catch (_) {
+        await loadArchive("Archived final leaderboard");
+      }
+    }
+
     main().catch(error => {
-      setStatus("error", "Could not load leaderboard");
+      setStatus("error", "Could not load archived leaderboard");
       boardEl.innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
     });
   </script>
